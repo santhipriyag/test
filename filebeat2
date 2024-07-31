@@ -1,0 +1,32 @@
+filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+    - /path/to/your/log/files/*.log
+  processors:
+    - script:
+        lang: javascript
+        id: event_id_generator
+        source: >
+          function generateUUID() {
+            var d = new Date().getTime();
+            var d2 = (performance && performance.now && (performance.now()*1000)) || 0; // use high-precision timer if available
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+              var r = Math.random() * 16; // random number between 0 and 16
+              if(d > 0){ // Use timestamp until depleted
+                r = (d + r)%16 | 0;
+                d = Math.floor(d/16);
+              } else { // Use high-precision timer if available
+                r = (d2 + r)%16 | 0;
+                d2 = Math.floor(d2/16);
+              }
+              return (c==='x' ? r : (r&0x3|0x8)).toString(16);
+            });
+          }
+
+          function process(event) {
+            event.fields.event_id = generateUUID();
+          }
+
+output.logstash:
+  hosts: ["your-logstash-host:5044"]
