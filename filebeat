@@ -1,0 +1,16 @@
+filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+    - /path/to/your/log/files/*.log
+  processors:
+    - script:
+        lang: javascript
+        id: event_id_generator
+        source: >
+          function process(event) {
+            event.fields.event_id = new Date().toISOString() + "-" + Math.random().toString(36).substring(2, 15);
+          }
+
+output.logstash:
+  hosts: ["your-logstash-host:5044"]
